@@ -1,0 +1,7 @@
+load("(2) atlas_ambiental.RData")
+str(atlas_ambiental)
+idade_media <- mean(atlas_ambiental$idade, na.rm = TRUE)
+print(idade_media)
+dataframe$ano <- format(as.Date(atlas_ambiental$data), "%Y")
+idade_media_por_ano <- aggregate(idade ~ ano, atlas_ambiental, mean, na.rm = TRUE)
+barplot(idade_media_por_ano$idade, names.arg = idade_media_por_ano$ano, horiz = TRUE, xlab = "Idade Média", ylab = "Ano")
