@@ -1,0 +1,354 @@
+#PAblo Aula execução
+
+# Atividade de Análise nº 1 - Introdução ao pacote dplyr
+# https://dplyr.tidyverse.org/
+
+# O pacote dplyr está contido no tidyverse
+# dplyr: contém muitas funções comuns na manipulação de dados
+
+# Se for a primeira vez que utiliza o tidyverse, instale-o
+# Vamos instalar o pacote de leitura em excel
+# Também já vamos instalar um pacote que utilizaremos no RMarkdown
+
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("knitr")
+# Se já instalou para análises anteriores, basta carregar o pacote
+
+library("tidyverse")
+
+#--------------------Importar os datasets---------------------------------------
+
+# Dois datasets serão utilizados na apresentação central dos tópicos:
+# "dataset_inicial" - Fonte: Fávero & Belfiore (2017, Cap. 12)
+# "dataset_merge" - utilizado em análises futuras, mas já podemos importá-lo
+
+# Como estão em Excel, vamos importá-los da seguinte forma:
+
+library(readxl)
+
+dataset_inicial <- read_excel("(1.2) Dataset Aula Data Wrangling.xls")
+dataset_merge <- read_excel("(1.3) Dataset Aula Data Wrangling (Join).xls")
+
+#--------------------Visualização-----------------------------------------------
+
+# Algumas formas para visualizar informações do dataset
+
+View(dataset_inicial) # Mostra a base de dados completa em uma nova aba
+head(dataset_inicial, n=15) # Mostra as 5 primeiras observações da base de dados
+str(dataset_inicial) # Mostra a estrutura da base de dados
+glimpse(dataset_inicial) # Função parecida com a str
+print(dataset_inicial) # Apresenta a base de dados no console
+dim(dataset_inicial) # As dimensões do dataset: linhas e colunas, respectivamente
+names(dataset_inicial) # Para ver os nomes das variáveis
+
+# Poderíamos fazer o print de apenas uma variável
+# O símbolo "$" é utilizado para especificar uma variável do dataset
+
+objeto <- dataset_inicial$`Tempo para chegar à escola (minutos)`
+
+# Relembrando algumas definições sobre as variáveis:
+
+# Variáveis <Chr> são caracteres ("characters"), isto é, contêm textos
+# Variáveis <dbl> são "doubles", isto é, contêm números
+# Variáveis <int> são integers, isto é, contêm números inteiros
+
+#--------------------Rename-----------------------------------------------------
+
+# Função "rename": utilizada para alterar o nome das variáveis
+
+# No dataset de exemplo, os nomes das variáveis contêm:
+# Espaços, maiúsculas, acentos e caracteres especiais...
+# É melhor não utilizá-los, podem gerar conflito e dificultam a escrita
+
+# Inicialmente, sem utilizar a função, poderíamos fazer da seguinte forma:
+# 1º:Combinamos os novos nomes desejados em um vetor
+
+novos_nomes <- c("Observações",
+                 "Tempo para chegar",
+                 "Distância percorrida",
+                 "Semáforos",
+                 "Período",
+                 "Perfil")
+
+print(novos_nomes)
+
+# 2º: Em seguida, atribuimos o vetor com nomes ao dataset
+
+names(dataset_inicial) <- novos_nomes
+
+head(dataset_inicial, n=10)
+
+# A função "rename" torna este trabalho mais prático
+# A seguir, o argumento da função é: novo nome = nome antigo
+
+nova_base <- rename(dataset_inicial, 
+                    observacoes = "Observações",
+                    tempo = "Tempo para chegar",
+                    distancia = "Distância percorrida",
+                    semaforos = "Semáforos",
+                    periodo = "Período",
+                    perfil = "Perfil")
+
+head(nova_base, n=5)
+
+# Existe uma forma um pouco diferente de escrever as funções no R
+# Trata-se do uso do operador pipe - %>% - atalho: Ctrl+Shift+M
+# Com ele, tiramos o primeiro argumento do código
+# É muito útil para realizar diversas funções em sequência
+
+nova_base %>% rename(obs = observacoes,
+                     temp = tempo,
+                     dist = distancia,
+                     sem = semaforos,
+                     per = periodo,
+                     perf = perfil) 
+
+# No código acima, não criamos um novo objeto, mas poderíamos criar
+
+nova_base_pipe <- nova_base %>% 
+  rename(obs = observacoes,
+         temp = tempo,
+         dist = distancia,
+         sem = semaforos,
+         per = periodo,
+         perf = perfil)
+
+# Note que um novo objeto foi criado no ambiente do R
+
+head(nova_base_pipe, n=5)
+
+rm(nova_base_pipe) # Remove o objeto especificado do ambiente
+
+# Também é possível utilizar a função "rename" com base na posição da variável
+# Em datasets com muitas variáveis, esta função facilita a escrita do código
+
+nova_base %>% rename(obs = 1,
+                     temp = 2,
+                     dist = 3,
+                     sem = 4,
+                     per = 5,
+                     perf = 6)
+
+# É possível alterar apenas uma ou outra variável
+
+nova_base %>% rename(sem = 4,
+                     perf = 6)
+
+#--------------------Mutate-----------------------------------------------------
+
+# Função "mutate": apresenta duas utilidades principais
+# 1. Inclui variáveis no dataset, mantendo as existentes
+# 2. Transforma o conteúdo das variáveis
+
+# Numa primeira situação, são adicionados duas variáveis a um dataset existente 
+# As observações no dataset e nas variáveis devem estar igualmente ordenadas
+
+variavel_nova_1 <- c(1,2,3,4,5,6,7,8,9,10)
+variavel_nova_2 <- c(11:20)
+print(variavel_nova_1)
+
+
+print(variavel_nova_2)
+
+base_inclui <- mutate(nova_base,
+                      variavel_nova_1, 
+                      variavel_nova_2)
+View(base_inclui)
+
+# Podemos utilizar o operador %>% para criar uma nova base (alterando nomes)
+# E, no mesmo código, vamos inserir as duas "variáveis novas"
+# Também criaremos a variável "temp_novo" como função de outra variável da base
+
+nova_base %>% 
+  rename(obs = observacoes,
+         temp = tempo,
+         dist = distancia,
+         sem = semaforos,
+         per = periodo,
+         perf = perfil) %>%
+  mutate(variavel_nova_1,
+         variavel_nova_2,
+         temp_novo = temp*2)
+
+# ATENÇÃO: na etapa do mutate, a variável já se chama "temp"
+# O nome original foi alterado na etapa do "rename"
+
+# A função "mutate" também pode tranformar as variáveis existentes no dataset
+# Vamos supor que gostaríamos de transformar a variável "semáforos" em texto
+# Para isto, podemos utilizar a função "replace"
+# Vamos substituir todos os valores da variável, mas poderiam ser só alguns
+
+base_texto_1 <- mutate(nova_base, 
+                       semaforos = replace(semaforos, semaforos==0, "Zero"),
+                       semaforos = replace(semaforos, semaforos==1, "Um"),
+                       semaforos = replace(semaforos, semaforos==2, "Dois"),
+                       semaforos = replace(semaforos, semaforos==3, "Três"))
+
+head(base_texto_1)
+
+# Em conjunto com o mutate, também pode ser utilizada a função "recode"
+# Vamos iniciar substituindo números por textos
+
+base_texto_2 <- mutate(nova_base,
+                       semaforos = recode(semaforos,
+                                          `0` = "Zero",
+                                          `1` = "Um", 
+                                          `2` = "Dois",
+                                          `3` = "Três"))
+
+head(base_texto_2)
+
+# A seguir, trocaremos um texto por outro texto e criaremos uma nova variável
+
+base_texto_3 <- mutate(nova_base, 
+                       perfil_novo = recode(perfil,
+                                            "calmo" = "perfil 1",
+                                            "moderado" = "perfil 2",
+                                            "agressivo" = "perfil 3"))
+
+head(base_texto_3)
+
+# Poderíamos manter na variável original (ao invés de criar "perfil_novo")
+
+# Vamos utizar o "recode" para transformar um texto em valores
+
+base_texto_valores <- mutate(nova_base,
+                             periodo = recode(periodo,
+                                              "Manhã" = 0,
+                                              "Tarde" = 1))
+
+head(base_texto_valores)
+
+# Um código semelhante poderia ser utilizado para gerar dummies (var. binárias)
+
+base_dummy <- mutate(nova_base, perfil_agressivo = recode(perfil,
+                                                          "agressivo"=1,
+                                                          "moderado"=0,
+                                                          "calmo"=0),
+                     perfil_moderado = recode(perfil,
+                                              "agressivo"=0,
+                                              "moderado"=1,
+                                              "calmo"=0),
+                     perfil_calmo = recode(perfil,
+                                           "agressivo"=0,
+                                           "moderado"=0,
+                                           "calmo"=1))
+
+View(base_dummy)
+
+# ATENÇÃO: há funções mais diretas para criar dummies, esta acima é para prática
+# Criando variáveis binárias (dummies) por meio de função específica
+
+install.packages("fastDummies")
+library("fastDummies")
+
+base_dummy_2 <- dummy_columns(.data = nova_base,
+                              select_columns = c("periodo",
+                                                 "perfil"),
+                              remove_selected_columns = F,
+                              remove_first_dummy = F)
+
+View(base_dummy_2)
+
+# Algumas vezes, é necessário utilizar o mutate para critérios mais detalhados
+# Para critérios mais complexos, a função case_when pode ser mais adequada
+
+base_categorias <- mutate(nova_base,
+                          categorias_tempo = case_when(tempo <= 20 ~ "Rápido",
+                                                       tempo > 20 & tempo <= 40 ~ "Intermediário",
+                                                       tempo > 40 ~ "Demorado"))
+
+View(base_categorias)
+
+# Por fim, também é possível deletar colunas com o mutate
+# Para isto, vamos utilizar o operador NULL
+
+base_categorias <- mutate(base_categorias,
+                          tempo = NULL)
+
+
+#--------------------Transmute--------------------------------------------------
+
+# Função "transmute": inclui variáveis no dataset, excluindo as existentes
+# Depois de informar o dataset, informe as variáveis mantidas e adicionadas
+
+base_exclui_1 <- transmute(nova_base,
+                           observacoes, tempo,
+                           variavel_nova_1, variavel_nova_2)
+
+# Podemos praticar um pouco mais com o pipe
+
+base_exclui_rename <- nova_base %>% 
+  transmute(observacoes, tempo, variavel_nova_1) %>% 
+  mutate(tempo_novo = recode(tempo,
+                             `10` = "dez",
+                             `15` = "quinze",
+                             `20` = "vinte",
+                             `25` = "vinte e cinco",
+                             `30` = "trinta",
+                             `35` = "trinta e cinco",
+                             `40` = "quarenta",
+                             `50` = "cinquenta",
+                             `55` = "cinquenta e cinco")) %>% 
+  mutate(posicao = cut(tempo, 
+                       breaks = c(0, median(tempo), Inf),
+                       labels = c("menores", "maiores")))
+
+# Para referência do cálculo, a mediana da amostra
+
+median(nova_base$tempo)
+
+# Utilizamos a função "cut", que converte uma variável de valores em intervalos
+# No exemplo acima, pedimos 2 intervalos tendo a mediana como referência
+# Em seguida, já adicionamos novos nomes aos intervalos (labels)
+# Note que a variável resultante é uma "factor"
+
+# Ao aplicar a função "summary" à variável factor, o resultado é uma contagem
+# summary: gera estatísticas descritivas para variáveis
+
+summary(base_exclui_rename$posicao)
+
+#--------------------Select-----------------------------------------------------
+
+# Função "select": tem a finalidade principal de extair variáveis selecionadas 
+# Também pode ser utilizada para reposicionar as variáveis no dataset
+
+# Relembrando, sem utilizar a função, poderia ser feito:
+
+selecao_1 <- nova_base[,c("observacoes","tempo")] # critérios após a vírgula
+selecao_2 <- nova_base[,1:3] # selecionando pela posição das colunas de 1 a 3
+selecao_3 <- nova_base[,c(1:3, 5)] # pulando posições
+
+# É possível selecionar parte do dataset (incluindo a seleção de linhas):
+# Linhas antes da vírgula, colunas após a vírgula
+
+extrai_parte_1 <- nova_base[3:7, c("observacoes", "perfil")]
+extrai_parte_2 <- nova_base[3:7, 1:2]
+
+# Função "select" utilizada para selecionar e manter variáveis no dataset
+# Portanto, seleciona as variáveis que devem ficar no dataset
+
+base_select_1 <- select(nova_base, observacoes, tempo) # especificando
+base_select_2 <- select(nova_base, -perfil, -semaforos) # todas menos algumas
+base_select_3 <- select(nova_base, observacoes:distancia) # de uma a outra
+base_select_4 <- select(nova_base, starts_with("per")) # para algum início comum
+base_select_5 <- select(nova_base, ends_with("o")) # para algum final comum
+
+# Reposicionar variáveis do dataset com "select"
+
+nova_base %>% select(observacoes, perfil, everything())
+
+# O mesmo trabalho poderia ser feito com a função "relocate"
+
+nova_base %>% relocate(perfil, .after = observacoes)
+nova_base %>% relocate(perfil, .before = tempo)
+relocate(nova_base,perfil, .before = tempo)
+# A seguir, com "select", informaremos a ordem (inclusive, excluindo variáveis)
+
+nova_base %>% select(tempo, semaforos, perfil, observacoes)
+
+# A função "pull" executa trabalho semelhante ao "select", porém gera um vetor
+
+vetor_pull <- nova_base %>% 
+  pull(var = 3)
