@@ -1,0 +1,2 @@
+"0","library(readxl)"
+"0","dados <- read_excel(""(1.2) Dataset Aula Data Wrangling.xls"")"
