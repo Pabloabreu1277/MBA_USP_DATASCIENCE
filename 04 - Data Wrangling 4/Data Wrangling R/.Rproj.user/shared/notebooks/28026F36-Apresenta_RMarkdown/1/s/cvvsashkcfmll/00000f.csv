@@ -1,4 +1,0 @@
-"0","dados %>% "
-"0","  rename(tempo=""Tempo para chegar à escola (minutos)"","
-"0","         distancia=""Distância percorrida até a escola (quilômetros)"") %>%"
-"0","  ggplot() + geom_point(aes(x=distancia, y=tempo))"

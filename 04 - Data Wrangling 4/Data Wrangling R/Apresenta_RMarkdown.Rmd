@@ -3,10 +3,10 @@ title: "Apresentação RMarkdown"
 author: "Wilson Tarantin Junior"
 date: "23/05/2023"
 output:
-  pdf_document: default
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
+  pdf_document: default
 ---
 
 ## R Markdown
