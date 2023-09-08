@@ -1,0 +1,104 @@
+---
+title: "Deep Learning - aula 2"
+---
+
+# Pré Processsamento
+
+#### Vamos usar o data set - Breast Cancer
+- Id: Sample code number
+- Cl.thickness: Clump thickness
+- Cell.size: Uniformity of cell size
+- Cell.shape: Uniformity of cell shape
+- Marg.adhesion: Marginal adhesion
+- Epith.c.size: Single epithelial cell size
+- Bare.nuclei: Bare nuclei
+- Bl.cromatin: Bland chromatin
+- Normal.nucleoli: Normal nucleoli
+- Mitoses: Mitoses
+- Class: Class
+
+```{r}
+#install.packages("MASS")
+#install.packages("mlbench")
+#install.packages("gmodels")
+library("mlbench")
+library("neuralnet")
+library("gmodels")
+
+#Baixa dados
+data(BreastCancer)
+
+#Faz summary
+summary(BreastCancer)
+
+#Procura NA
+BreastCancer[is.na(BreastCancer)==TRUE]
+data_cleaned <- na.omit(BreastCancer)
+summary(data_cleaned)
+
+#Procura por outliers
+boxplot(data_cleaned[,2:10])
+hist(as.numeric(data_cleaned$Mitoses))
+
+#Avalia o tipo de variável
+str(data_cleaned)
+input<-data_cleaned[,2:10]
+input <- as.data.frame(lapply(input, function(x) as.numeric(as.character(x))))
+str(input)
+
+#Feature Scalling
+max_data <- apply(input, 2, max)
+min_data <- apply(input, 2, min)
+input_scaled <- as.data.frame(scale(input,center = min_data, scale = max_data - min_data))
+View(input_scaled)
+
+#Variável Dependente
+Cancer<-data_cleaned$Class
+Cancer<-as.data.frame(Cancer)
+#Cria variável bin´ria para cada caso de câncer
+Cancer<-with(Cancer, data.frame(model.matrix(~Cancer+0)))
+final_data<-as.data.frame(cbind(input_scaled,Cancer))
+
+#Train test split
+index = sample(1:nrow(final_data),round(0.70*nrow(final_data)))
+train_data <- as.data.frame(final_data[index,])
+test_data <- as.data.frame(final_data[-index,])
+
+```
+
+### Regressão Linear
+```{r}
+names(train_data)
+#Regressão Linear
+lm.fit <- lm(Cancermalignant~Cl.thickness+Cell.size+Cell.shape+Marg.adhesion+Epith.c.size+Bare.nuclei+Bl.cromatin+Normal.nucleoli+Mitoses, data=train_data)
+
+summary(lm.fit)
+pr.lm <- round(predict(lm.fit,test_data), digits = 0)
+#Erro quadrático médio
+MSE.lm <- sum((pr.lm - test_data$Cancermalignant)^2)/nrow(test_data)
+
+```
+
+
+### NeuralNet
+```{r}
+
+#abrir o CRAN para mostrar
+
+#Fit de neuralnet
+#Executar testes com diferentes arquiteturas
+net <- neuralnet(Cancermalignant~Cl.thickness+Cell.size+Cell.shape+Marg.adhesion+Epith.c.size+Bare.nuclei+Bl.cromatin+Normal.nucleoli+Mitoses,data=train_data,hidden=c(5,4,2,1),linear.output=T)
+plot(net)
+
+
+predict_net_test <- compute(net,test_data[,1:9])
+predict_result<-round(predict_net_test$net.result, digits = 0)
+
+MSE.nn <- sum((predict_result - test_data$Cancermalignant)^2)/nrow(test_data)
+
+CrossTable(x = test_data$Cancermalignant, y = predict_result, prop.chisq=FALSE)
+
+
+```
+
+
