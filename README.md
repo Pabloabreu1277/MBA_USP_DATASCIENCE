@@ -18,3 +18,8 @@ Aulas e projetos
 <div  align="center"> 
   <div style="display: inline_block"><br>
     <img align="center" height="250" alt="coding-time" src="arv de des titanic.png">
+
+    Deep learning 
+<div  align="center"> 
+  <div style="display: inline_block"><br>
+    <img align="center" height="250" alt="coding-time" src="Imagem original e imagem gerada pelo modelo.jpg">
